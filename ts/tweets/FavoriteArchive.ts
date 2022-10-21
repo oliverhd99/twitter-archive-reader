@@ -10,6 +10,59 @@ export class FavoriteArchive implements TweetLikeContainer<PartialFavorite> {
   protected _index: TweetIndex<PartialFavorite> = {};
   protected _date_index: TweetDateIndex<PartialFavorite>;
   protected fav_set: Set<string>;
+   protected _clicked: { [id_str: string]: ClickedTweet } = {};
+  protected _clicked_urls: Set<string>;
+
+
+  /** ------------------ */
+  /** ARCHIVE MANAGEMENT */
+  /** ------------------ */
+
+  /**
+   * Add tweets to this archive.
+   * This method should not be called by end-programmer.
+   *
+   * Prefer usage of `TwitterArchive.loadClassicArchivePart()` method.
+   */
+  add(tweets: PartialTweet[]) {
+    this._all = undefined;
+    this._date_index = undefined;
+
+    for (const tweet of tweets) {
+      this._index[tweet.id_str] = tweet;
+    }
+  }
+
+  /**
+   * Add unconverted GDPR tweets to this archive.
+   * This method should not be called by end-programmer.
+   *
+   * Prefer usage of `TwitterArchive.loadArchivePart()` method.
+   */
+  addGDPR(tweets: PartialTweetGDPR[]) {
+    this._all = undefined;
+    this._date_index = undefined;
+
+    for (const original of tweets) {
+      const tweet = this.convertToPartial(original);
+      this._index[tweet.id_str] = tweet;
+    }
+  }
+
+  /**
+   * Add clicked actions to this container.
+   */
+  addClicked(clicked_actions: GDPRClickedTweet[]) {
+    for (const action of clicked_actions) {
+      const data = action.userInteractionsData.linkClick;
+      this._clicked[data.tweetId] = {
+        id_str: data.tweetId,
+        created_at: new Date(data.timeStampOfInteraction),
+        url: data.finalUrl
+      };
+    }
+  }
+
 
   add(favs: GDPRFavorites | PartialFavorite[]) {
     for (const f of favs) {
@@ -48,7 +101,8 @@ export class FavoriteArchive implements TweetLikeContainer<PartialFavorite> {
     return this.single(tweet_id);
   }
 
-  month(month: string | number, year: string | number) {
+  month(month: string | number, year: string | number) : PartialFavorite[] {
+    if (this._date_index || Settings.ENABLE_CACHE) {
     const m = Number(month);
     const y = Number(year);
     const index = this.index;
@@ -134,12 +188,14 @@ export class FavoriteArchive implements TweetLikeContainer<PartialFavorite> {
   get index() {
     if (this._date_index)
       return this._date_index;
+    */
+  fromThatDay(start?: Date) : PartialTweet[] {
 
-    const index: TweetDateIndex<PartialFavorite> = {};
+    const index: TweetDateIndex<PartialFavorite [ ]> = {};
 
     for (const fav of this.all) {
-      const d = dateFromFavorite(fav);
-      const year = d.getFullYear(), month = d.getMonth() + 1;
+      const d = dateFromFavorite(fav); PartialTweet[] = [];
+      const year = d.getFullYear(), month = d.getMonth() + 1; PartialTweet[] = [];
 
       if (!(year in index)) {
         index[year] = {};
